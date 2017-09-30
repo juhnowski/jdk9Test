@@ -1,0 +1,71 @@
+​
+JDK-9
+sudo add-apt-repository ppa:webupd8team/java
+sudo apt-get update
+sudo apt-get install oracle-java9-installer
+1. jshell
+2. Фабричные методы для коллекций
+List.of(1, 2, 3)
+Set.of(1, 2)
+Map.of("hello", "world")
+3. Стримы
+IntStream.range(1, 10).dropWhile(x -> x < 5).forEach(System.out::println)
+dropWhile выбрасывает элементы с начала и до тех пор, пока не будет выполнено условие,
+takeWhile — забирает элементы вплоть до выполнения условия
+4. IntStream.iterate(0, x -> x < 3, x -> x + 1).forEach(System.out::println)
+5. Улучшения в Optional
+5.1 or()
+Optional.empty().or(()->Optional.of("qqq"))
+5.2преобразоывывать Optional в Stream - для ленивых стримов
+не ленивый: Optional.of91).map(x->x*3)
+ленивый Optional.of(1).stream().map(x->x*3)
+5.3 ifPresentOrElse
+Optional.empty().ifPresentOrElse(x -> System.out.println(x), () -> System.out.println("empty"));
+6. CompletableFuture
+6.1 copy()
+jshell> CompletableFuture<String> future = new CompletableFuture<>()
+future ==> java.util.concurrent.CompletableFuture@35d176f7[Not completed]
+jshell> future.copy()
+$15 ==> java.util.concurrent.CompletableFuture@4973813a[Not completed]
+jshell> future.isDone()
+$17 ==> false
+jshell> $15.isDone()
+$18 ==> false
+jshell> $15.complete("JRebel")
+$19 ==> true
+jshell> $15.isDone()
+$20 ==> true
+jshell> future.isDone()
+$21 ==> false
+6.2 Но самое крутое в том, что остановка родителя распространяется на все копии!
+jshell> CompletableFuture<String> future = new CompletableFuture<>()
+future ==> java.util.concurrent.CompletableFuture@4bbfb90a[Not completed]
+jshell> future.copy()
+$24 ==> java.util.concurrent.CompletableFuture@5a8806ef[Not completed]
+jshell> future.complete("XRebel")
+$25 ==> true
+jshell> $24.isDone()
+$26 ==> true
+6.3 Добавлены таймауты
+jshell> CompletableFuture<String> future = new CompletableFuture<>()
+future ==> java.util.concurrent.CompletableFuture@67205a84[Not completed]
+jshell> future.completeOnTimeout("Isn't this amazing", 1, TimeUnit.SECONDS)
+$28 ==> java.util.concurrent.CompletableFuture@67205a84[Not completed, 1 dependents]
+jshell> future.isDone()
+$29 ==> true
+7. API управления процессами
+jshell> ProcessHandle current = ProcessHandle.current();
+current ==> 6349
+jshell> current.pid()
+$33 ==> 6349
+jshell> current.info().\TAB
+arguments() command() commandLine() equals( getClass()
+hashCode() notify() notifyAll() startInstant() toString()
+totalCpuDuration() user() wait(
+jshell> current.info().command()
+$34 ==> Optional[/Library/Java/JavaVirtualMachines/jdk-9.jdk/Contents/Home/bin/java]
+8. запуск кода сразу после того, как процесс завершился
+CompletableFuture<Process> onExit()
+9. StackWalker
+StackWalker.getInstance().walk(s -> s.limit(5).collect(Collectors.toList()));
+10 Интерфейсы в Java 9 смогут содержать приватные методы
